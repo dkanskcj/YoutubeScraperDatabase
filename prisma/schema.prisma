@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  // 닉네임
+  name String?
+  // 비밀번호
+  password String
+  // 영상
+  contents Content[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
+}
+
+model Content {
+  id Int @id @default(autoincrement())
+  // 썸네일
+  thumbNail String
+  // 장르
+  genre String
+  // 영상 길이
+  videoLength String?
+  // 태그
+  hashTag String?
+  author User? @relation(fields: [authorId], references: [id])
+  authorId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
+}

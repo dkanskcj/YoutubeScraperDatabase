@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, Comment } from '@prisma/client';
+import { CommentService } from './comment/comment.service';
 import { ContentService } from './content/content.service';
 import { UserService } from './user/user.service';
 
@@ -7,7 +8,8 @@ import { UserService } from './user/user.service';
 export class AppController {
   constructor(
     private readonly userService: UserService,
-    private readonly contentService: ContentService
+    private readonly contentService: ContentService,
+    private readonly commentService: CommentService
   ) {}
 
   @Get('user')
@@ -59,4 +61,54 @@ export class AppController {
     });
   }
 
+
+  @Get('comment')
+  async getCommet(): Promise<Comment[]>{
+    return this.commentService.Comments({});
+  }
+
+  @Get('comment/:id')
+  async getCommentById(@Param('id') id: string): Promise<Comment>{
+    console.log(id)
+
+    return this.commentService.Comment({ id: Number(id) });
+  }
+
+  @Get('comment/:queue')
+  async getCommentBySearch(
+    @Param('queue') queue: string
+  ): Promise<Comment[]>{
+    return this.commentService.Comments({
+      where: {
+
+      }
+    });
+  }
+
+  @Post('comment')
+  async createComment(
+    @Body() comment: Comment
+  ): Promise<Comment>{
+    return this.commentService.createComment(comment);
+  }
+
+  @Put('comment/:id')
+  async updateComment(
+    @Param('id') id: Number,
+    @Body() comment: Comment
+  ): Promise<Comment>{
+    return this.commentService.updateComment({
+      where: { id: Number(id) },
+      data: comment
+    });
+  }
+
+  @Delete('comment/:id')
+  async deleteComment(
+    @Param('id') id: Number
+  ): Promise<Comment>{
+    return this.commentService.deleteComment({
+      id: Number(id)
+    });
+  }
 }

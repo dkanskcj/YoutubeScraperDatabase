@@ -18,6 +18,7 @@ model User {
   password String
   // 영상
   contents Content[]
+  Comments Comment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   deletedAt DateTime?
@@ -37,5 +38,16 @@ model Content {
   authorId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+  // 댓글
+  context String
+  user User? @relation(fields: [userId], references: [id])
+  userId Int
+  createdAt DateTime @default(now())
+  updatedAT DateTime @default(now()) @updatedAt
   deletedAt DateTime?
 }

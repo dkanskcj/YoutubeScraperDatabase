@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Video } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateVideoDTO } from './dtos/create-video.dto';
 
 @Injectable()
 export class VideoService {
@@ -30,9 +31,11 @@ export class VideoService {
         });
     }
 
-    async createVideo(data: Prisma.VideoCreateInput): Promise<Video>{
+    async createVideo(body: CreateVideoDTO): Promise<Video>{
         return await this.prisma.video.create({
-            data
+            data: {
+                ...body
+            }
         })
     }
 

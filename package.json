@@ -18,7 +18,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migrate:prod":"npx prisma migrate dev",
+    "docker":"npm run build:prod && docker image -t lepisode/youtube-crawler-backend:latest . && docker push"
   },
   "dependencies": {
     "@nestjs/common": "^9.1.2",

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Comment } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateCommentDTO } from './dtos/create-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -8,7 +9,7 @@ export class CommentService {
         private prisma: PrismaService
     ) { }
 
-    async Comment(
+    async findComment(
         CommentWhereUniqueInput: Prisma.CommentWhereUniqueInput
     ): Promise<Comment | null> {
         console.log(CommentWhereUniqueInput)
@@ -18,7 +19,7 @@ export class CommentService {
         });
     }
 
-    async Comments(params: {
+    async findComments(params: {
         skip?: number;
         take?: number;
         cursor?: Prisma.CommentWhereUniqueInput;
@@ -32,9 +33,16 @@ export class CommentService {
         });
     }
 
-    async createComment(data: Prisma.CommentCreateInput): Promise<Comment>{
+    async createComment(body: CreateCommentDTO, videoId: number): Promise<Comment>{
         return this.prisma.comment.create({
-            data
+            data :{
+                content: body.content,
+                name: body.name,
+                password: body.password,
+                video: {
+                    connect:{id: videoId}
+                }
+            }
         });
     }
 

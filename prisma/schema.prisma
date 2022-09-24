@@ -10,32 +10,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+// 동영상
+model Video {
   id Int @id @default(autoincrement())
-  // 닉네임
-  name String?
-  // 비밀번호
-  password String
-  // 영상
-  contents Content[]
-  Comments Comment[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  deletedAt DateTime?
-}
-
-model Content {
-  id Int @id @default(autoincrement())
+  title String
   // 썸네일
   thumbNail String
   // 장르
-  genre String
+  category String
   // 영상 길이
   videoLength String?
   // 태그
   hashTag String?
-  author User? @relation(fields: [authorId], references: [id])
-  authorId Int
+  comments Comment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   deletedAt DateTime?
@@ -44,9 +31,11 @@ model Content {
 model Comment {
   id Int @id @default(autoincrement())
   // 댓글
-  context String
-  user User? @relation(fields: [userId], references: [id])
-  userId Int
+  content String
+  name String
+  password String
+  video Video @relation(fields: [videoId], references: [id])
+  videoId Int
   createdAt DateTime @default(now())
   updatedAT DateTime @default(now()) @updatedAt
   deletedAt DateTime?

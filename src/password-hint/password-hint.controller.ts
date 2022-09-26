@@ -41,16 +41,23 @@ export class PasswordHintController {
     @Body() body: CreateHintDTO
   ): Promise<User>{
     const user = await this.userService.findUser({ id });
-    if(user){
-      const test = await this.passwordHintService.findHints({
+    // 유저가 존재한다면 사용
+    if(!user){
+      throw new NotFoundException('해당 유저를 찾을 수 없습니다.')
+    }
+    else{
+      const hints = await this.passwordHintService.findHints({
         where: {
           OR: [
             { userId: id }
           ]
         }
       })
-      if(test[0].authTitle !== body.authTitle || test[0].authAnswer !== body.authAnswer){
+      if(hints[0].authTitle !== body.authTitle || hints[0].authAnswer !== body.authAnswer){
         throw new BadRequestException('질문 또는 답변이 일치하지 않습니다.')
+      }
+      if(hints !== null){
+        throw new NotFoundException('질문과 답변이 등록되지 않았습니다.')
       }
     }
      return this.userService.findUser({ id });

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, Comment } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
+import { FindCommentDTO } from './dtos/find-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -18,6 +19,16 @@ export class CommentService {
             where: CommentWhereUniqueInput
         });
     }
+
+    // async findCommentswithVideoId(
+    //     skip?: number;
+    //     take:
+    // ): Promise<Comment[]> {
+    //     const{ skip, take, cursor, where, orderBy } = params;
+    //     return await this.prisma.comment.findMany({
+    //        skip, take, cursor, where, orderBy
+    //     });
+    // }
 
     async findComments(params: {
         skip?: number;

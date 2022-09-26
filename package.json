@@ -20,7 +20,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:prod":"npx prisma migrate dev",
-    "docker":"npm run build:prod && docker image -t lepisode/youtube-crawler-backend:latest . && docker push"
+    "docker":"docker image build -t lepisode/youtube-crawler-backend:latest . && docker push lepisode/youtube-crawler-backend:latest"
   },
   "dependencies": {
     "@nestjs/common": "^9.1.2",

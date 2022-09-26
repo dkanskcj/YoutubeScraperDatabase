@@ -19,6 +19,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('document', app, document);
 
+  // 포트번호
   await app.listen(80);
 }
 bootstrap();

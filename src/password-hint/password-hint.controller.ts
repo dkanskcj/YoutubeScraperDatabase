@@ -53,11 +53,8 @@ export class PasswordHintController {
           ]
         }
       })
-      if(hints[0].authTitle !== body.authTitle || hints[0].authAnswer !== body.authAnswer){
-        throw new BadRequestException('질문 또는 답변이 일치하지 않습니다.')
-      }
-      if(hints !== null){
-        throw new NotFoundException('질문과 답변이 등록되지 않았습니다.')
+      if(hints[0]?.authTitle !== body.authTitle || hints[0]?.authAnswer !== body.authAnswer){
+        throw new BadRequestException('질문 또는 답변이 등록되지 않았거나 일치하지 않습니다.')
       }
     }
      return this.userService.findUser({ id });

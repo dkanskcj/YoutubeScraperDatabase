@@ -49,7 +49,7 @@ export class CommentController {
           { videoId: id }
         ]
       }
-    })
+    });
     // return this.videoService.findVideo({ id });
   }
 

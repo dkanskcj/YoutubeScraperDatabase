@@ -10,6 +10,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  password String
+  // 질문찾기
+  findPassword passwordHint[]
+}
+
+model passwordHint {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  // 질문
+  authTitle String
+  // 답변
+  authAnswer String
+}
+
 // 동영상
 model Video {
   id Int @id @default(autoincrement())

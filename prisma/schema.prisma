@@ -17,6 +17,10 @@ model User {
   password String
   // 질문찾기
   findPassword passwordHint[]
+  // 비밀번호 찾기 힌트 주제
+  passwordHintTitle String?
+  // 비밀번호 찾기 답변
+  passwordHintAnswer String?
 }
 
 model passwordHint {

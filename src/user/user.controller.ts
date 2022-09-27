@@ -28,14 +28,42 @@ export class UserController {
     return this.userService.findUser({ id });
   }
 
-  // @Get('search:id')
-  // @ApiOperation({ summary: '유저의'})
+  @Get('searchUser/:name')
+  @ApiOperation({ summary: '아이디로 유저를 조회합니다.', description: '아이디가 있는지 없는지 기억이 안날 때 아이디가 존재하는지 찾을 수 있습니다.'})
+  async findUserByName(
+    @Param('name') name: string
+  ): Promise<User>{
+    const users = await this.userService.findUsers({});
+    let id: number = 0;
+    if(!users){
+      throw new NotFoundException('유저 아이디를 찾을 수 없습니다.');
+    }
+    for(let user of users){
+      if(user.name === name){
+        id = user.id
+        // throw new BadRequestException('유저 아이디 존재합니다~');
+      }
+    }
+
+    return this.userService.findUser({ id });
+  }
 
   @Post(':id')
-  @ApiOperation({ summary: '유저를 생성합니다.', description: '유저 아이디와 비밀번호를 입력하여 유저를 생성합니다.'})
+  @ApiOperation({ summary: '유저를 생성합니다.', description: '중복되지 않은 유저 아이디와 비밀번호를 입력하여 유저를 생성합니다.'})
   async createUser(
     @Body() body: CreateUserDTO
   ): Promise<User>{
+    const users = await this.userService.findUsers({})
+    if(!users){
+      throw new NotFoundException('유저를 찾을 수 없습니다.')
+    }
+    else{
+      for(let user of users){
+        if(user.name === body.name){
+          throw new BadRequestException('아이디가 중복됩니다. 다른 아이디를 생성해 주시기 바랍니다.')
+        }
+      }
+    }
     return this.userService.createUser(body);
   }
 
@@ -52,7 +80,7 @@ export class UserController {
       console.log('t')
       throw new NotFoundException('비밀번호를 찾을 수 없습니다.')
     }
-    if(body.password !== user.password || body.name !== user.name){
+    if(body.password !== user.password){
       console.log('t')
       throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
     }

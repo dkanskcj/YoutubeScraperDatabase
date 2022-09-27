@@ -46,15 +46,16 @@ export class PasswordHintController {
       throw new NotFoundException('해당 유저를 찾을 수 없습니다.')
     }
     else{
-      const hints = await this.passwordHintService.findHints({
-        where: {
-          OR: [
-            { userId: id }
-          ]
+      const hints = await this.passwordHintService.findHints({})
+      if(!hints){
+        throw new NotFoundException('질문과 답변을 만들지 않은 사용자입니다.')
+      }
+      else{
+        for(let hint of hints){
+          if(hint.authAnswer === body.authAnswer){
+            
+          }
         }
-      })
-      if(hints[0]?.authTitle !== body.authTitle || hints[0]?.authAnswer !== body.authAnswer){
-        throw new BadRequestException('질문 또는 답변이 등록되지 않았거나 일치하지 않습니다.')
       }
     }
      return this.userService.findUser({ id });

@@ -52,8 +52,13 @@ export class PasswordHintController {
       }
       else{
         for(let hint of hints){
-          if(hint.authAnswer === body.authAnswer){
-            
+          if(hint.userId === user.id){
+            if(hint.authAnswer !== body.authAnswer){
+              throw new BadRequestException('잘못된 답변입니다. 다시 입력해 주시기 바랍니다.')
+            }
+            if(!hint.id && user.id === hint.userId){
+              throw new NotFoundException(user, '질문과 답변을 생성하지 않은 사용자입니다.')
+            }
           }
         }
       }

@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { DeleteUserDTO } from './dto/delete-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
@@ -10,7 +11,8 @@ import { UserService } from './user.service';
 @Controller('')
 export class UserController {
   constructor(
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private prismaService: PrismaService
   ) { }
 
   @Get('')
@@ -32,19 +34,11 @@ export class UserController {
   async findUserByName(
     @Param('name') name: string
   ): Promise<User>{
-    const users = await this.userService.findUsers({});
-    let id: number = 0;
-    if(!users){
-      throw new NotFoundException('유저 아이디를 찾을 수 없습니다.');
+    const user = await this.prismaService.user.findFirst({ where: { name }})
+    if(!user){
+      throw new NotFoundException('유저 아이디를 찾을 수 없습니다.')
     }
-    for(let user of users){
-      if(user.name === name){
-        id = user.id
-        // throw new BadRequestException('유저 아이디 존재합니다~');
-      }
-    }
-
-    return this.userService.findUser({ id });
+    return user;
   }
 
   @Post(':id')

@@ -16,9 +16,13 @@ model User {
   name String
   password String
   // 비밀번호 찾기 힌트 주제
-  passwordHintTitle String?
+  passwordHintTitle String
   // 비밀번호 찾기 답변
-  passwordHintAnswer String?
+  passwordHintAnswer String
+  comments Comment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
 }
 
 // 동영상
@@ -43,10 +47,10 @@ model Comment {
   id Int @id @default(autoincrement())
   // 댓글
   content String
-  name String
-  password String
   video Video @relation(fields: [videoId], references: [id])
   videoId Int
+  user User @relation(fields: [userId], references: [id])
+  userId Int
   createdAt DateTime @default(now())
   updatedAT DateTime @default(now()) @updatedAt
   deletedAt DateTime?

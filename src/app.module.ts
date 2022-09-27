@@ -11,6 +11,6 @@ import { VideoService } from './video/video.service';
 
 @Module({
   imports: [TestModule, VideoModule, AppRoutingModule],
-  providers: [AppService, UserService, ContentService, PrismaService, CommentService, VideoService],
+  providers: [AppService, UserService, ContentService, PrismaService, CommentService, VideoService, UserService],
 })
 export class AppModule { }

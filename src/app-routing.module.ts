@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
-import { VideoModule } from './video/video.module';
 import { CommentModule } from './comment/comment.module';
+import { UserModule } from './user/user.module';
+import { VideoModule } from './video/video.module';
 
-const routes : Routes = [
-    {path: 'video', module: VideoModule},
-    {path: 'comment', module: CommentModule}
+const routes: Routes = [
+    { path: 'video', module: VideoModule },
+    { path: 'comment', module: CommentModule },
+    { path: 'user', module: UserModule},
 ]
 
 @Module({
-    imports: [RouterModule.register(routes),  VideoModule, CommentModule],
-    exports:[RouterModule]
+    imports: [RouterModule.register(routes), VideoModule, CommentModule, UserModule],
+    exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }

@@ -1,13 +1,17 @@
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Video } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateVideoDTO } from './dtos/create-video.dto';
 import { VideoService } from './video.service';
 
 @ApiTags('동영상')
 @Controller()
 export class VideoController {
-  constructor(private readonly videoService: VideoService) {}
+  constructor(
+    private readonly videoService: VideoService,
+    private prismaService: PrismaService
+    ) {}
 
   @Get()
   @ApiOperation({summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.'})
@@ -37,7 +41,7 @@ export class VideoController {
   async getVideo(
     @Param('id', new ParseIntPipe()) id: number
   ): Promise<Video> {
-    const video = await this.videoService.findVideo({ id })
+    const video = await this.prismaService.video.findUnique({ where: { id }})
     if(!video){
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }
@@ -49,9 +53,14 @@ export class VideoController {
   async createVideo(
     @Body() body: CreateVideoDTO
   ): Promise<Video> {
-    console.log(body)
     if (!body) {
-      throw new BadRequestException('?')
+      throw new BadRequestException('입력된 동영상이 없습니다.')
+    }
+    if(!body.title){
+      throw new BadRequestException('동영상 제목을 입력해주시기 바랍니다.')
+    }
+    if(!body.thumbNail){
+      throw new BadRequestException('동영상 썸네일을 입력해주시기 바랍니다.')
     }
     return this.videoService.createVideo(body)
   }
@@ -62,7 +71,7 @@ export class VideoController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: CreateVideoDTO
   ): Promise<Video> {
-    const video = await this.videoService.findVideo({ id })
+    const video = await this.prismaService.video.findUnique({ where: { id }})
     if(!video){
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }
@@ -77,7 +86,7 @@ export class VideoController {
   async deleteVideo(
     @Param('id', new ParseIntPipe()) id: number
   ): Promise<Video> {
-    const video = await this.videoService.findVideo({ id })
+    const video = await this.prismaService.video.findUnique({ where: { id }})
     if(!video){
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }

@@ -8,8 +8,8 @@ export class UpdateUserDTO {
     password: string;
 
     @ApiProperty({ example: '좋아하는 색깔은?'})
-    passwordHintTitle: string;
+    passwordHintTitle?: string;
 
     @ApiProperty({ example: '파란색'})
-    passwordHintAnswer: string;
+    passwordHintAnswer?: string;
 }

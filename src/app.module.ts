@@ -3,7 +3,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppService } from './app.service';
 import { CommentService } from './comment/comment.service';
 import { ContentService } from './content/content.service';
-import { PasswordHintService } from './password-hint/password-hint.service';
 import { PrismaService } from './prisma/prisma.service';
 import { TestModule } from './test/test.module';
 import { UserService } from './user/user.service';
@@ -12,6 +11,6 @@ import { VideoService } from './video/video.service';
 
 @Module({
   imports: [TestModule, VideoModule, AppRoutingModule],
-  providers: [AppService, UserService, ContentService, PrismaService, CommentService, VideoService, UserService, PasswordHintService],
+  providers: [AppService, UserService, ContentService, PrismaService, CommentService, VideoService, UserService],
 })
 export class AppModule { }

@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Patch, Delete, Param, ParseIntPipe, Body, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
-import { get } from 'http';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { DeleteUserDTO } from './dto/delete-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
@@ -49,13 +48,14 @@ export class UserController {
   }
 
   @Post(':id')
-  @ApiOperation({ summary: '유저를 생성합니다.', description: '중복되지 않은 유저 아이디와 비밀번호를 입력하여 유저를 생성합니다.'})
+  @ApiOperation({ summary: '유저를 생성합니다.', description: '중복되지 않은 유저 아이디와 비밀번호를 입력하고 비밀번호 질의응답도 생성하여 유저를 생성합니다.'})
   async createUser(
     @Body() body: CreateUserDTO
   ): Promise<User>{
     const users = await this.userService.findUsers({})
     if(!users){
-      throw new NotFoundException('유저를 찾을 수 없습니다.')
+      console.log('사용 가능한 아이디입니다.')
+      throw new NotFoundException('사용 가능한 아이디입니다.')
     }
     else{
       for(let user of users){
@@ -75,19 +75,18 @@ export class UserController {
     @Body() body: UpdateUserDTO
   ): Promise<User>{
     const user = await this.userService.findUser({ id })
-    console.log('t', user)
     if(!user){
-      console.log('t')
       throw new NotFoundException('비밀번호를 찾을 수 없습니다.')
     }
     if(body.password !== user.password){
-      console.log('t')
       throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
     }
     return this.userService.updateUser({
       where: { id },
       data: {
-        password: body.password
+        password: body.password,
+        passwordHintTitle: body?.passwordHintTitle,
+        passwordHintAnswer: body?.passwordHintAnswer
       }
     });
   }

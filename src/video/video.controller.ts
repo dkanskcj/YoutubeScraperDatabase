@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Video } from '@prisma/client';
 import { CreateVideoDTO } from './dtos/create-video.dto';
@@ -37,6 +37,10 @@ export class VideoController {
   async getVideo(
     @Param('id', new ParseIntPipe()) id: number
   ): Promise<Video> {
+    const video = await this.videoService.findVideo({ id })
+    if(!video){
+      throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
+    }
     return this.videoService.findVideo({ id })
   }
 
@@ -56,11 +60,15 @@ export class VideoController {
   @ApiOperation({summary: '특정 id의 동영상 수정', description: '특정 id의 동영상을 수정합니다.'})
   async updateVideo(
     @Param('id', ParseIntPipe) id: number,
-    @Body() video: Video
+    @Body() body: CreateVideoDTO
   ): Promise<Video> {
+    const video = await this.videoService.findVideo({ id })
+    if(!video){
+      throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
+    }
     return this.videoService.updateVideo({
       where: { id },
-      data: video
+      data: body
     });
   }
 
@@ -69,6 +77,10 @@ export class VideoController {
   async deleteVideo(
     @Param('id', new ParseIntPipe()) id: number
   ): Promise<Video> {
+    const video = await this.videoService.findVideo({ id })
+    if(!video){
+      throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
+    }
     return this.videoService.deleteVideo({
       id
     })

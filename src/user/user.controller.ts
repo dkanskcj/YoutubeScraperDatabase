@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Patch, Delete, Param, ParseIntPipe, Body, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
-import { get } from 'http';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { DeleteUserDTO } from './dto/delete-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
@@ -11,7 +11,8 @@ import { UserService } from './user.service';
 @Controller('')
 export class UserController {
   constructor(
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private prismaService: PrismaService
   ) { }
 
   @Get('')
@@ -28,14 +29,35 @@ export class UserController {
     return this.userService.findUser({ id });
   }
 
-  // @Get('search:id')
-  // @ApiOperation({ summary: '유저의'})
+  @Get('searchUser/:name')
+  @ApiOperation({ summary: '아이디로 유저를 조회합니다.', description: '아이디가 있는지 없는지 기억이 안날 때 아이디가 존재하는지 찾을 수 있습니다.'})
+  async findUserByName(
+    @Param('name') name: string
+  ): Promise<User>{
+    const user = await this.prismaService.user.findFirst({ where: { name }})
+    if(!user){
+      throw new NotFoundException('유저 아이디를 찾을 수 없습니다.')
+    }
+    return user;
+  }
 
   @Post(':id')
-  @ApiOperation({ summary: '유저를 생성합니다.', description: '유저 아이디와 비밀번호를 입력하여 유저를 생성합니다.'})
+  @ApiOperation({ summary: '유저를 생성합니다.', description: '중복되지 않은 유저 아이디와 비밀번호를 입력하고 비밀번호 질의응답도 생성하여 유저를 생성합니다.'})
   async createUser(
     @Body() body: CreateUserDTO
   ): Promise<User>{
+    const users = await this.userService.findUsers({})
+    if(!users){
+      console.log('사용 가능한 아이디입니다.')
+      throw new NotFoundException('사용 가능한 아이디입니다.')
+    }
+    else{
+      for(let user of users){
+        if(user.name === body.name){
+          throw new BadRequestException('아이디가 중복됩니다. 다른 아이디를 생성해 주시기 바랍니다.')
+        }
+      }
+    }
     return this.userService.createUser(body);
   }
 
@@ -47,19 +69,18 @@ export class UserController {
     @Body() body: UpdateUserDTO
   ): Promise<User>{
     const user = await this.userService.findUser({ id })
-    console.log('t', user)
     if(!user){
-      console.log('t')
       throw new NotFoundException('비밀번호를 찾을 수 없습니다.')
     }
-    if(body.password !== user.password || body.name !== user.name){
-      console.log('t')
+    if(body.password !== user.password){
       throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
     }
     return this.userService.updateUser({
       where: { id },
       data: {
-        password: body.password
+        password: body.password,
+        passwordHintTitle: body?.passwordHintTitle,
+        passwordHintAnswer: body?.passwordHintAnswer
       }
     });
   }

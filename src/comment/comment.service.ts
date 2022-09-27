@@ -43,12 +43,13 @@ export class CommentService {
         });
     }
 
-    async createComment(body: CreateCommentDTO, videoId: number): Promise<Comment>{
+    async createComment(body: CreateCommentDTO, videoId: number, userId: number): Promise<Comment>{
         return this.prisma.comment.create({
             data :{
+                user: {
+                    connect:{ id : userId }
+                },
                 content: body.content,
-                name: body.name,
-                password: body.password,
                 video: {
                     connect:{id: videoId}
                 }

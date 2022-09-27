@@ -4,14 +4,14 @@ import { IsNotEmpty } from "class-validator";
 export class CreateCommentDTO {
 
     @IsNotEmpty({message: '이름을 입력해 주세요.'})
-    @ApiProperty({example: '아이디'})
+    @ApiProperty({example: 'dkanskcj'})
     name: string;
 
     @IsNotEmpty({message: '비밀번호를 입력해 주세요.'})
-    @ApiProperty({example: 'password'})
+    @ApiProperty({example: '1234'})
     password: string;
 
     @IsNotEmpty({message: '내용을 입력해 주세요.'})
-    @ApiProperty({example: '비밀번호를 생성하였다!'})
+    @ApiProperty({example: '댓글을 생성하였다!'})
     content: string;
 }

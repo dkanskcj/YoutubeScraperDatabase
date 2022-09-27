@@ -15,18 +15,14 @@ model User {
   id Int @id @default(autoincrement())
   name String
   password String
-  // 질문찾기
-  findPassword passwordHint[]
-}
-
-model passwordHint {
-  id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  // 질문
-  authTitle String
-  // 답변
-  authAnswer String
+  // 비밀번호 찾기 힌트 주제
+  passwordHintTitle String
+  // 비밀번호 찾기 답변
+  passwordHintAnswer String
+  comments Comment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
 }
 
 // 동영상
@@ -51,10 +47,10 @@ model Comment {
   id Int @id @default(autoincrement())
   // 댓글
   content String
-  name String
-  password String
   video Video @relation(fields: [videoId], references: [id])
   videoId Int
+  user User @relation(fields: [userId], references: [id])
+  userId Int
   createdAt DateTime @default(now())
   updatedAT DateTime @default(now()) @updatedAt
   deletedAt DateTime?

@@ -55,8 +55,8 @@ export class VideoController {
     @Body() body: CreateVideoDTO
   ): Promise<Video> {
     const video = await this.prismaService.video.findFirst({ where: { url: body.url }});
-    if(!video){
-      throw new NotFoundException('동영상을 찾을 수 없습니다.')
+    if(video){
+      throw new NotFoundException('이미 등록된 영상이 존재합니다. 다른 영상을 등록해주시길 바랍니다.')
     }
     if (!body) {
       throw new BadRequestException('입력된 동영상이 없습니다.')
@@ -69,9 +69,6 @@ export class VideoController {
     }
     if (body.category !== ('HTML' || 'tailwindcss' || 'JavaScript' || 'Angular' || 'React')){
       throw new BadRequestException('올바른 카테고리가 아닙니다. 정해진 카테고리에서 선택해 주시길 바랍니다.')
-    }
-    if(body.url === video.url){
-      throw new BadRequestException('이미 등록된 영상이 존재합니다. 다른 영상을 등록해주시길 바랍니다.')
     }
       return this.videoService.createVideo(body)
   }

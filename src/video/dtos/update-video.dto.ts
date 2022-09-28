@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty } from "class-validator";
 
-export class CreateVideoDTO {
+export class UpdateVideoDTO {
     
     @IsNotEmpty({message: '제목을 입력해 주세요.'})
     @ApiProperty({example: 'YoutubeScraper'})
@@ -12,8 +12,8 @@ export class CreateVideoDTO {
     url: string;
 
     // @IsNotEmpty({message: '태그를 입력해 주세요.'})
-    // @ApiProperty({example: '운동'})
-    // hashTag: string;
+    @ApiProperty({example: '운동'})
+    hashTag: string;
 
     @IsNotEmpty({message: '카테고리를 선택해 주세요.'})
     @ApiProperty({example: 'html'})

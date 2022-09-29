@@ -7,6 +7,7 @@ import { CreateCommentDTO } from './dtos/create-comment.dto';
 import { deleteCommentDTO } from './dtos/delete-comment.dto';
 import { UpdateCommentDTO } from './dtos/update-comment.dto';
 import { GetCommentsDTO } from './dtos/get-comments.dto';
+import { GetCommentDTO } from './dtos/get-comment.dto';
 
 @ApiTags('댓글')
 @Controller('')
@@ -20,8 +21,20 @@ export class CommentController {
 
   @Get('')
   @ApiOperation({ summary: '댓글 전체 조회', description: '댓글을 전체 조회합니다.' })
-  async getCommet(): Promise<Comment[]> {
-    return this.commentService.findComments({});
+  async getCommet(): Promise<GetCommentsDTO[]> {
+    const comments = await this.prismaService.comment.findMany({
+      select: {
+        videoId: true,
+        name: true,
+        content: true,
+        password: false,
+        createdAt: true
+      }
+    })
+    if(!comments){
+      throw new NotFoundException('댓글이 존재하지 않습니다')
+    }
+    return comments
   }
 
 
@@ -30,15 +43,27 @@ export class CommentController {
   async getCommentById(
     @Param('id', new ParseIntPipe()) id: number
     // @Param('name') name: string
-  ): Promise<Comment> {
+  ): Promise<GetCommentDTO[]> {
     const comment = await this.prismaService.comment.findUnique({ where: {id} })
-    // const comment = await this.prismaService.comment.findFirst({ where: { name }})
-    // const user = await this.prismaService.user.findFirst({ where: { name }, include: { comments: true } });
+    const comments = await this.prismaService.comment.findMany({
+      where: {
+        id
+      },
+      select: {
+        name: true,
+        content: true,
+        createdAt: true,
+        password: false
+      }
+    })
     if (!comment) {
       throw new NotFoundException('입력한 이름과 일치하는 사용자를 찾을 수 없습니다.');
     }
+    if(!comments){
+      throw new NotFoundException('해당 사용자의 댓글을 찾을 수 없습니다.')
+    }
     
-    return this.commentService.findComment({ id });
+    return comments
   }
 
   @Get('search:videoId')
@@ -50,17 +75,25 @@ export class CommentController {
     if (!video) {
       throw new NotFoundException('Video ID를 찾을 수 없습니다.')
     }
-    const comments = await this.prismaService.comment.findMany({where: {id}})
-    if(!comments){
-      throw new NotFoundException(comments, '해당 영상의 댓글을 찾을 수 없습니다.')
+    const comment = await this.prismaService.comment.findFirst({where: {videoId: id}})
+    if(!comment){
+      throw new BadRequestException(comment, 'test')
     }
-    return this.commentService.findComments({
+    const comments = await this.prismaService.comment.findMany({
       where: {
-        OR: [
-          { videoId: id },
-        ]
+        videoId: id
+      },
+      select: {
+        videoId: true,
+        name: true,
+        password: false,
+        createdAt: true
       }
-    });
+    })
+    if(!comments){
+      throw new BadRequestException(comments)
+    }
+    return comments
   }
 
 

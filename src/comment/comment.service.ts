@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Comment, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
+import { GetCommentsDTO } from './dtos/get-comments.dto';
 
 @Injectable()
 export class CommentService {

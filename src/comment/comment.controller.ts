@@ -87,7 +87,8 @@ export class CommentController {
         videoId: true,
         name: true,
         password: false,
-        createdAt: true
+        createdAt: true,
+        content: true
       }
     })
     if(!comments){

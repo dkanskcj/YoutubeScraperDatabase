@@ -85,10 +85,13 @@ export class VideoController {
     if (!body.url) {
       throw new BadRequestException('동영상 url을 입력해주시기 바랍니다.')
     }
-    if (body.category !== ('HTML' || 'tailwindcss' || 'JavaScript' || 'Angular' || 'React')) {
-      throw new BadRequestException('올바른 카테고리가 아닙니다. 정해진 카테고리에서 선택해 주시길 바랍니다.')
+    if (body.category === 'HTML' || body.category === 'JavaScript' || body.category === 'Angular' || body.category === 'React' || body.category === 'tailwindcss') {
+      return this.videoService.createVideo(body);
     }
-    return this.videoService.createVideo(body)
+    else{
+      throw new BadRequestException('카테고리 형식이 옳지 않습니다. 정해진 카테고리 내에서 선택해주시길 바랍니다.')
+    }
+    return ;
   }
 
   @Patch(':id')

@@ -15,14 +15,20 @@ export class VideoController {
   ) { }
 
 
-  @Get('')
+  @Get('all')
   @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.' })
+  async allVideos() {
+    return this.prismaService.video.findMany({});
+  }
+
+  @Get('')
+  @ApiOperation({ summary: '동영상 전체 조회(페이지네이션)', description: 'pageNo에 있는 pageSize만큼 동영상을 조회합니다.' })
   async getVideos(
     @Query('pageNo') pageNo: number,
     @Query('pageSize', new ParseIntPipe()) pageSize: number
   ) {
     console.log({ pageNo, pageSize })
-    
+
     const videos = await this.videoService.findVideos({
       skip: (pageNo - 1) * pageSize,
       take: pageSize
@@ -40,19 +46,28 @@ export class VideoController {
   // }
 
   @Get('search')
-  @ApiOperation({ summary: '동영상 검색', description: '동영상을 검색합니다. (제목 or 해시태그 or 카테고리' })
+  @ApiOperation({ summary: '카테고리로 동영상 검색', description: '동영상을 검색합니다. (카테고리)' })
   async getVideoBySearch(
     @Query('query') query: string
   ): Promise<Video[]> {
-    return this.videoService.findVideos({
+    let youtube = 'https://www.youtube.com/embed/';
+    const videos = await this.videoService.findVideos({
       where: {
         OR: [
-          { title: { contains: query } },
-          { hashTag: { contains: query } },
+          // { title: { contains: query } },
+          // { hashTag: { contains: query } },
           { category: { contains: query } }
         ]
       }
     });
+    if(!videos){
+      throw new BadRequestException('해당 카테고리의 동영상이 존재하지 않습니다.')
+    }
+    for(let video of videos){
+      video.url = video.url.substring(17);
+      video.url = youtube.concat(video.url);
+    }
+    return videos;
   }
 
   @Get(':id')
@@ -66,6 +81,8 @@ export class VideoController {
     }
     return this.videoService.findVideo({ id })
   }
+
+
 
   @Post()
   @ApiOperation({ summary: '동영상 생성', description: '제목, 카테고리, url을 입력하고 카테고리는 HTML, tailwindcss, JavaScript, Angular, React 5개만 받고 동영상을 생성합니다. 카테고리에 존재하지 않는 형식은 생성하지 못하며, 중복된 url도 동영상 생성이 불가능합니다.' })
@@ -85,13 +102,16 @@ export class VideoController {
     if (!body.url) {
       throw new BadRequestException('동영상 url을 입력해주시기 바랍니다.')
     }
+    // if(![CreateVideoType].includes(body.category)){
+
+    // }
     if (body.category === 'HTML' || body.category === 'JavaScript' || body.category === 'Angular' || body.category === 'React' || body.category === 'tailwindcss') {
       return this.videoService.createVideo(body);
     }
-    else{
+    else {
       throw new BadRequestException('카테고리 형식이 옳지 않습니다. 정해진 카테고리 내에서 선택해주시길 바랍니다.')
     }
-    return ;
+    return;
   }
 
   @Patch(':id')

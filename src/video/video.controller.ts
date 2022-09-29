@@ -14,6 +14,7 @@ export class VideoController {
     private prismaService: PrismaService
   ) { }
 
+
   @Get('')
   @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.' })
   async getVideos(

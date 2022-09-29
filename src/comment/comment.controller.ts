@@ -6,6 +6,7 @@ import { CommentService } from './comment.service';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
 import { deleteCommentDTO } from './dtos/delete-comment.dto';
 import { UpdateCommentDTO } from './dtos/update-comment.dto';
+import { GetCommentsDTO } from './dtos/get-comments.dto';
 
 @ApiTags('댓글')
 @Controller('')
@@ -40,19 +41,23 @@ export class CommentController {
     return this.commentService.findComment({ id });
   }
 
-  @Get('search/:id')
+  @Get('search:videoId')
   @ApiOperation({ summary: '특정 video id의 전체 댓글을 조회합니다.', description: '특정 video의 id를 선택하면 해당 id에 있는 댓글들을 조회합니다.' })
   async getCommentsBySearchWithVideo(
-    @Param('id', new ParseIntPipe()) id: number
-  ): Promise<Comment[]> {
+    @Param('videoId', new ParseIntPipe()) id: number
+  ): Promise<GetCommentsDTO[]> {
     const video = await this.prismaService.video.findUnique({ where: { id } });
     if (!video) {
-      throw new BadRequestException('Video ID를 찾을 수 없습니다.')
+      throw new NotFoundException('Video ID를 찾을 수 없습니다.')
+    }
+    const comments = await this.prismaService.comment.findMany({where: {id}})
+    if(!comments){
+      throw new NotFoundException(comments, '해당 영상의 댓글을 찾을 수 없습니다.')
     }
     return this.commentService.findComments({
       where: {
         OR: [
-          { videoId: id }
+          { videoId: id },
         ]
       }
     });
@@ -60,7 +65,7 @@ export class CommentController {
 
 
 
-  @Post('search/:name/video:videoId')
+  @Post(':videoId')
   @ApiOperation({ summary: '해당 영상에 댓글을 생성합니다.', description: '아이디와 댓글을 검증하여 맞으면 해당 영상에 댓글을 생성합니다.' })
   async createComment(
     @Param('videoId', new ParseIntPipe()) videoId: number,
@@ -68,6 +73,7 @@ export class CommentController {
   ): Promise<Comment> {
     const comment = await this.prismaService.comment.findFirst({
       where: {
+        videoId: videoId,
         name: body.name,
         password: body.password
       }
@@ -80,7 +86,7 @@ export class CommentController {
     if (!video) {
       throw new NotFoundException('동영상을 찾을 수 없습니다.')
     }
-    if(body.name === comment.name){
+    if(body.name === comment.name && videoId === comment.videoId){
       throw new BadRequestException('중복된 아이디가 있습니다. 다른 아이디를 입력해 주시기 바랍니다.')
     }
     if(!body.name){

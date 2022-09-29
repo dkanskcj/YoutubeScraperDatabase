@@ -64,7 +64,6 @@ export class CommentController {
   @ApiOperation({ summary: '해당 영상에 댓글을 생성합니다.', description: '아이디와 댓글을 검증하여 맞으면 해당 영상에 댓글을 생성합니다.' })
   async createComment(
     @Param('videoId', new ParseIntPipe()) videoId: number,
-    // @Param('name') name: string,
     @Body() body: CreateCommentDTO
   ): Promise<Comment> {
     const comment = await this.prismaService.comment.findFirst({
@@ -73,12 +72,6 @@ export class CommentController {
         password: body.password
       }
     })
-    // const user = await this.prismaService.user.findFirst({
-    //   where: {
-    //     name: name,
-    //     password: body.password
-    //   }
-    // });
     if (!comment) {
       return this.commentService.createComment(body, videoId);
       // throw new NotFoundException('유저 정보를 찾을 수 없습니다.')

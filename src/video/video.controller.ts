@@ -147,9 +147,9 @@ export class VideoController {
     if (!body.url) {
       throw new BadRequestException('동영상 url을 입력해주시기 바랍니다.')
     }
-    // if(![CreateVideoType].includes(body.category)){
-
-    // }
+    if(body.url.startsWith('https://www.youtu') !== true){
+      throw new BadRequestException('유튜브 영상만 올릴 수 있습니다.')
+    }    
     if (body.category === 'HTML' || body.category === 'JavaScript' || body.category === 'Angular' || body.category === 'React' || body.category === 'tailwindcss') {
       return this.videoService.createVideo(body);
     }

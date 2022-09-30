@@ -50,7 +50,7 @@ export class VideoController {
   async getVideoBySearch(
     @Query('query') query: string
   ): Promise<Video[]> {
-    let youtube = 'https://www.youtube.com/embed/';
+    let youtube = 'https://www.youtube.com/embed';
     const videos = await this.videoService.findVideos({
       where: {
         OR: [
@@ -60,12 +60,57 @@ export class VideoController {
         ]
       }
     });
-    if(!videos){
-      throw new BadRequestException('해당 카테고리의 동영상이 존재하지 않습니다.')
+    if (!videos) {
+      throw new NotFoundException('해당 카테고리의 동영상이 존재하지 않습니다.')
     }
-    for(let video of videos){
-      video.url = video.url.substring(17);
-      video.url = youtube.concat(video.url);
+    for (let video of videos) {
+      if (video.url.indexOf("https://www.youtube.com") === 0) {
+        video.url = video.url.substring(23);
+        video.url = youtube.concat(video.url);
+      }
+      if(video.url.indexOf("http://www.youtube.com") === 0){
+        video.url = video.url.substring(22);
+        video.url = youtube.concat(video.url);
+      }
+      if (video.url.indexOf("https://youtu.be") === 0) {
+        video.url = video.url.substring(16);
+        video.url = youtube.concat(video.url);
+      }
+    }
+    return videos;
+  }
+
+
+  @Get('thumbNailImg')
+  @ApiOperation({ summary: '유튜브 영상의 썸네일을 가져옵니다.', description: '유튜브 영상의 고유 ID값만 따로 추출해서 썸네일 데이터를 만들 수 있게 만들어줍니다.' })
+  async getVideosThumbNailImg(
+    @Query('query') query: string
+  ): Promise<Video[]> {
+    let thumbNail: string = 'https://img.youtube.com/vi/';
+    let defaultImg: string = '/mqdefault.jpg';
+    const videos = await this.videoService.findVideos({
+      where: {
+        OR: [
+          { category: { contains: query } }
+        ]
+      }
+    });
+    if (!videos) {
+      throw new NotFoundException('동영상이 존재하지 않습니다.')
+    }
+    for (let video of videos) {
+      if (video.url.indexOf("https://www.youtube.com") === 0) {
+        video.url = video.url.substring(24);
+        video.url = thumbNail.concat(video.url + defaultImg);
+      }
+      if(video.url.indexOf("http://www.youtube.com") === 0){
+        video.url = video.url.substring(23);
+        video.url = thumbNail.concat(video.url + defaultImg);
+      }
+      if (video.url.indexOf("https://youtu.be") === 0) {
+        video.url = video.url.substring(17);
+        video.url = thumbNail.concat(video.url + defaultImg);
+      }
     }
     return videos;
   }

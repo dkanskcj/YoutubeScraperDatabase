@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Video } from '@prisma/client';
+import { CommentService } from 'src/comment/comment.service';
 import { CreateCommentDTO } from 'src/comment/dtos/create-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateVideoDTO } from './dtos/create-video.dto';
@@ -10,10 +11,10 @@ import { VideoService } from './video.service';
 @ApiTags('동영상')
 @Controller()
 export class VideoController {
-  commentService: any;
   constructor(
     private readonly videoService: VideoService,
-    private prismaService: PrismaService
+    private prismaService: PrismaService,
+    private commentService: CommentService
   ) { }
 
 
@@ -184,7 +185,7 @@ export class VideoController {
   async updateVideo(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateVideoDTO
-  ): Promise<Video> {
+  ): Promise<UpdateVideoDTO> {
     const video = await this.prismaService.video.findUnique({ where: { id } })
     if (!video) {
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
@@ -207,8 +208,16 @@ export class VideoController {
     if (!video) {
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }
-    return this.videoService.deleteVideo({
-      id
-    })
+    const comments = await this.prismaService.comment.findMany({ where: { videoId: id }})
+    if(!comments){
+      return this.videoService.deleteVideo({ id })
+    }
+    if(comments){
+      for(let comment of comments){
+        console.log(comment.id, comment.name)
+        await this.commentService.deleteComment({ id: comment.id })
+      }
+    }
+    return this.videoService.deleteVideo({ id });
   }
 }

@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Video } from '@prisma/client';
+import { CreateCommentDTO } from 'src/comment/dtos/create-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateVideoDTO } from './dtos/create-video.dto';
 import { UpdateVideoDTO } from './dtos/update-video.dto';
@@ -9,6 +10,7 @@ import { VideoService } from './video.service';
 @ApiTags('동영상')
 @Controller()
 export class VideoController {
+  commentService: any;
   constructor(
     private readonly videoService: VideoService,
     private prismaService: PrismaService
@@ -18,7 +20,26 @@ export class VideoController {
   @Get('all')
   @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.' })
   async allVideos() {
-    return this.prismaService.video.findMany({});
+    const videos = await this.prismaService.video.findMany({});
+    let youtube = 'https://www.youtube.com/embed';
+    if (!videos) {
+      throw new NotFoundException('해당 카테고리의 동영상이 존재하지 않습니다.')
+    }
+    for (let video of videos) {
+      if (video.url.indexOf("https://www.youtube.com") === 0) {
+        video.url = video.url.substring(23);
+        video.url = youtube.concat(video.url);
+      }
+      if(video.url.indexOf("http://www.youtube.com") === 0){
+        video.url = video.url.substring(22);
+        video.url = youtube.concat(video.url);
+      }
+      if (video.url.indexOf("https://youtu.be") === 0) {
+        video.url = video.url.substring(16);
+        video.url = youtube.concat(video.url);
+      }
+    }
+    return videos;
   }
 
   @Get('')
@@ -127,8 +148,7 @@ export class VideoController {
     return this.videoService.findVideo({ id })
   }
 
-
-
+ 
   @Post()
   @ApiOperation({ summary: '동영상 생성', description: '제목, 카테고리, url을 입력하고 카테고리는 HTML, tailwindcss, JavaScript, Angular, React 5개만 받고 동영상을 생성합니다. 카테고리에 존재하지 않는 형식은 생성하지 못하며, 중복된 url도 동영상 생성이 불가능합니다.' })
   async createVideo(

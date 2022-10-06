@@ -1,13 +1,14 @@
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Comment } from '@prisma/client';
+import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CommentService } from './comment.service';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
 import { deleteCommentDTO } from './dtos/delete-comment.dto';
-import { UpdateCommentDTO } from './dtos/update-comment.dto';
-import { GetCommentsDTO } from './dtos/get-comments.dto';
 import { GetCommentDTO } from './dtos/get-comment.dto';
+import { GetCommentsDTO } from './dtos/get-comments.dto';
+import { UpdateCommentDTO } from './dtos/update-comment.dto';
 
 @ApiTags('댓글')
 @Controller('')
@@ -31,7 +32,7 @@ export class CommentController {
         createdAt: true
       }
     })
-    if(!comments){
+    if (!comments) {
       throw new NotFoundException('댓글이 존재하지 않습니다')
     }
     return comments
@@ -44,12 +45,13 @@ export class CommentController {
     @Param('id', new ParseIntPipe()) id: number
     // @Param('name') name: string
   ): Promise<GetCommentDTO[]> {
-    const comment = await this.prismaService.comment.findUnique({ where: {id} })
+    const comment = await this.prismaService.comment.findUnique({ where: { id } })
     const comments = await this.prismaService.comment.findMany({
       where: {
         id
       },
       select: {
+        id: true,
         name: true,
         content: true,
         createdAt: true,
@@ -59,10 +61,10 @@ export class CommentController {
     if (!comment) {
       throw new NotFoundException('입력한 이름과 일치하는 사용자를 찾을 수 없습니다.');
     }
-    if(!comments){
+    if (!comments) {
       throw new NotFoundException('해당 사용자의 댓글을 찾을 수 없습니다.')
     }
-    
+
     return comments
   }
 
@@ -75,8 +77,8 @@ export class CommentController {
     if (!video) {
       throw new NotFoundException('Video ID를 찾을 수 없습니다.')
     }
-    const comment = await this.prismaService.comment.findFirst({where: {videoId: id}})
-    if(!comment){
+    const comment = await this.prismaService.comment.findFirst({ where: { videoId: id } })
+    if (!comment) {
       throw new BadRequestException(comment, 'test')
     }
     const comments = await this.prismaService.comment.findMany({
@@ -84,14 +86,14 @@ export class CommentController {
         videoId: id
       },
       select: {
-        videoId: true,
+        id: true,
         name: true,
         password: false,
         createdAt: true,
         content: true
       }
     })
-    if(!comments){
+    if (!comments) {
       throw new BadRequestException(comments)
     }
     return comments
@@ -99,12 +101,20 @@ export class CommentController {
 
 
 
-  @Post(':videoId')
+  @Post('createWithVideoId=:videoId')
   @ApiOperation({ summary: '해당 영상에 댓글을 생성합니다.', description: '아이디와 댓글을 검증하여 맞으면 해당 영상에 댓글을 생성합니다.' })
   async createComment(
     @Param('videoId', new ParseIntPipe()) videoId: number,
     @Body() body: CreateCommentDTO
-  ): Promise<Comment> {
+  ): Promise<GetCommentDTO> {
+    const video = await this.prismaService.video.findUnique({ where: { id: videoId } });
+    if (!video) {
+      throw new NotFoundException('동영상을 찾을 수 없습니다.')
+    }
+
+    if (!body.name) {
+      throw new BadRequestException('아이디를 입력해 주시기 바랍니다.')
+    }
     const comment = await this.prismaService.comment.findFirst({
       where: {
         videoId: videoId,
@@ -113,31 +123,24 @@ export class CommentController {
       }
     })
     if (!comment) {
-      return this.commentService.createComment(body, videoId);
-      // throw new NotFoundException('유저 정보를 찾을 수 없습니다.')
+      const create =  await this.commentService.createComment(body, videoId);
+      return plainToInstance(GetCommentDTO, create)
     }
-    const video = await this.prismaService.video.findUnique({ where: { id: videoId } });
-    if (!video) {
-      throw new NotFoundException('동영상을 찾을 수 없습니다.')
-    }
-    if(body.name === comment.name && videoId === comment.videoId){
+    if (body.name === comment.name && videoId === comment.videoId) {
       throw new BadRequestException('중복된 아이디가 있습니다. 다른 아이디를 입력해 주시기 바랍니다.')
     }
-    if(!body.name){
-      throw new BadRequestException('아이디를 입력해 주시기 바랍니다.')
-    }
-    return this.commentService.createComment(body, videoId);
+    const create = this.commentService.createComment(body, videoId);
+    return plainToInstance(GetCommentDTO, create);
   }
 
-  @Patch(':userId')
+  @Patch(':id')
   @ApiOperation({ summary: '댓글을 수정합니다.', description: '비밀번호 일치 여부를 조회하여 일치한다면 댓글을 수정할 수 있습니다.' })
   async updateComment(
-    @Param('userId', new ParseIntPipe()) id: number,
+    @Param('id', new ParseIntPipe()) id: number,
     @Body() body: UpdateCommentDTO
-  ): Promise<Comment> {
+  ): Promise<GetCommentDTO> {
     // 아이디 찾기
-    const comment = await this.prismaService.comment.findUnique({ where: {id}});
-    // const user = await this.prismaService.user.findUnique({ where: { id } });
+    const comment = await this.prismaService.comment.findUnique({ where: { id } });
 
     if (!comment) {
       throw new NotFoundException('사용자를 찾을 수 없습니다.')
@@ -146,30 +149,30 @@ export class CommentController {
     if (body.password !== comment.password) {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.')
     }
-
-    return this.commentService.updateComment({
+    const update = await this.commentService.updateComment({
       where: { id },
       data: {
         content: body.content
       }
-    });
+    })
+    return plainToInstance(GetCommentDTO, update);
   }
 
-  @Delete(':id')
+  @Patch(':id/delete')
   @ApiOperation({ summary: '특정 id의 댓글을 삭제합니다.', description: '비밀번호를 비교하여 비밀번호가 일치한다면 해당 댓글을 삭제합니다.' })
   async deleteComment(
     @Param('id', new ParseIntPipe()) id: number,
     @Body() body: deleteCommentDTO
-  ): Promise<Comment> {
-    const comment = await this.prismaService.comment.findUnique({ where: {id}});
+  ): Promise<deleteCommentDTO> {
+    const comment = await this.prismaService.comment.findUnique({ where: { id } });
     // const user = await this.prismaService.user.findUnique({ where: { id } });
     if (!comment) {
       throw new NotFoundException('댓글을 찾을 수 없습니다.')
     }
-    if (body.password !== comment.password) {
-      throw new BadRequestException('비밀번호가 일치하지 않습니다.')
+    console.log(body)
+    if (body.password !== comment.password || body.name !== comment.name) {
+      throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
     }
-
     return this.commentService.deleteComment({
       id
     });

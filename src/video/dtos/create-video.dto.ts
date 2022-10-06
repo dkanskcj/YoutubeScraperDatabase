@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty } from "class-validator";
-import { CreateVideoType } from "./typeDto/create-video.type";
 
 export class CreateVideoDTO {
     

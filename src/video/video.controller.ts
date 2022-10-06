@@ -4,6 +4,7 @@ import { Video } from '@prisma/client';
 import { CommentService } from 'src/comment/comment.service';
 import { CreateCommentDTO } from 'src/comment/dtos/create-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CategoryPaginationVideo } from './dtos/categoryPagination-video.dto';
 import { CreateVideoDTO } from './dtos/create-video.dto';
 import { UpdateVideoDTO } from './dtos/update-video.dto';
 import { VideoService } from './video.service';
@@ -46,15 +47,18 @@ export class VideoController {
   @Get('')
   @ApiOperation({ summary: '동영상 전체 조회(페이지네이션)', description: 'pageNo에 있는 pageSize만큼 동영상을 조회합니다.' })
   async getVideos(
-    @Query('pageNo') pageNo: number,
-    @Query('pageSize', new ParseIntPipe()) pageSize: number
+    @Query('pageNo', new ParseIntPipe()) pageNo: number,
+    @Query('pageSize', new ParseIntPipe()) pageSize: number,
   ) {
     console.log({ pageNo, pageSize })
 
     const videos = await this.videoService.findVideos({
       skip: (pageNo - 1) * pageSize,
-      take: pageSize
+      take: pageSize,
     });
+    if(!videos){
+      throw new NotFoundException('동영상을 찾을 수 없습니다.')
+    }
 
     const count = await this.videoService.totalVideo();
     const result = {
@@ -208,15 +212,9 @@ export class VideoController {
     if (!video) {
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }
-    const comments = await this.prismaService.comment.findMany({ where: { videoId: id }})
+    const comments = await this.prismaService.comment.deleteMany({ where: { videoId: id }})
     if(!comments){
       return this.videoService.deleteVideo({ id })
-    }
-    if(comments){
-      for(let comment of comments){
-        console.log(comment.id, comment.name)
-        await this.commentService.deleteComment({ id: comment.id })
-      }
     }
     return this.videoService.deleteVideo({ id });
   }

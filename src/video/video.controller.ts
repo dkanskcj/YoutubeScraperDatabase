@@ -1,12 +1,14 @@
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Video } from '@prisma/client';
+import { plainToInstance } from 'class-transformer';
 import { CommentService } from 'src/comment/comment.service';
 import { CreateCommentDTO } from 'src/comment/dtos/create-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CategoryPaginationVideo } from './dtos/categoryPagination-video.dto';
 import { CreateVideoDTO } from './dtos/create-video.dto';
 import { UpdateVideoDTO } from './dtos/update-video.dto';
+import { VideoDTO } from './video.dto';
 import { VideoService } from './video.service';
 
 @ApiTags('동영상')
@@ -22,26 +24,59 @@ export class VideoController {
   @Get('all')
   @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.' })
   async allVideos() {
-    const videos = await this.prismaService.video.findMany({});
-    let youtube = 'https://www.youtube.com/embed';
-    if (!videos) {
-      throw new NotFoundException('해당 카테고리의 동영상이 존재하지 않습니다.')
+    let test = {
+      angular: [],
+      tailwindcss: [],
+      javascript: [],
+      react: [],
+      html: []
     }
-    for (let video of videos) {
-      if (video.url.indexOf("https://www.youtube.com") === 0) {
-        video.url = video.url.substring(23);
-        video.url = youtube.concat(video.url);
-      }
-      if(video.url.indexOf("http://www.youtube.com") === 0){
-        video.url = video.url.substring(22);
-        video.url = youtube.concat(video.url);
-      }
-      if (video.url.indexOf("https://youtu.be") === 0) {
-        video.url = video.url.substring(16);
-        video.url = youtube.concat(video.url);
-      }
+
+    const Angulars = await this.prismaService.video.findMany({
+      where: {
+        category: 'Angular',
+      },
+      take: 5,
+    });
+    const tailwinds = await this.prismaService.video.findMany({
+      where: {
+        category: 'tailwindcss'
+      },
+      take: 5
+    });
+    const JavaScripts = await this.prismaService.video.findMany({
+      where: {
+        category: 'JavaScript'
+      },
+      take: 5
+    });
+    const Reacts = await this.prismaService.video.findMany({
+      where: {
+        category: 'React'
+      },
+      take: 5
+    });
+    const HTMLs = await this.prismaService.video.findMany({
+      where: {
+        category: 'HTML'
+      },
+      take: 5
+    });
+
+
+    test = {
+      angular: [...plainToInstance(VideoDTO, Angulars)],
+      tailwindcss: [...plainToInstance(VideoDTO, tailwinds)],
+      javascript: [...plainToInstance(VideoDTO, JavaScripts)],
+      react: [...plainToInstance(VideoDTO, Reacts)],
+      html: [...plainToInstance(VideoDTO, HTMLs)],
     }
-    return videos;
+
+    // if (!videos) {
+    //   throw new NotFoundException('해당 카테고리의 동영상이 존재하지 않습니다.')
+    // }
+
+    return test;
   }
 
   @Get('')
@@ -56,7 +91,7 @@ export class VideoController {
       skip: (pageNo - 1) * pageSize,
       take: pageSize,
     });
-    if(!videos){
+    if (!videos) {
       throw new NotFoundException('동영상을 찾을 수 없습니다.')
     }
 
@@ -94,7 +129,7 @@ export class VideoController {
         video.url = video.url.substring(23);
         video.url = youtube.concat(video.url);
       }
-      if(video.url.indexOf("http://www.youtube.com") === 0){
+      if (video.url.indexOf("http://www.youtube.com") === 0) {
         video.url = video.url.substring(22);
         video.url = youtube.concat(video.url);
       }
@@ -129,7 +164,7 @@ export class VideoController {
         video.url = video.url.substring(24);
         video.url = thumbNail.concat(video.url + defaultImg);
       }
-      if(video.url.indexOf("http://www.youtube.com") === 0){
+      if (video.url.indexOf("http://www.youtube.com") === 0) {
         video.url = video.url.substring(23);
         video.url = thumbNail.concat(video.url + defaultImg);
       }
@@ -153,7 +188,7 @@ export class VideoController {
     return this.videoService.findVideo({ id })
   }
 
- 
+
   @Post()
   @ApiOperation({ summary: '동영상 생성', description: '제목, 카테고리, url을 입력하고 카테고리는 HTML, tailwindcss, JavaScript, Angular, React 5개만 받고 동영상을 생성합니다. 카테고리에 존재하지 않는 형식은 생성하지 못하며, 중복된 url도 동영상 생성이 불가능합니다.' })
   async createVideo(
@@ -172,9 +207,9 @@ export class VideoController {
     if (!body.url) {
       throw new BadRequestException('동영상 url을 입력해주시기 바랍니다.')
     }
-    if(body.url.includes('youtu') === false){
+    if (body.url.includes('youtu') === false) {
       throw new BadRequestException('유튜브 영상만 올릴 수 있습니다.')
-    }    
+    }
     if (body.category === 'HTML' || body.category === 'JavaScript' || body.category === 'Angular' || body.category === 'React' || body.category === 'tailwindcss') {
       return this.videoService.createVideo(body);
     }
@@ -212,8 +247,8 @@ export class VideoController {
     if (!video) {
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }
-    const comments = await this.prismaService.comment.deleteMany({ where: { videoId: id }})
-    if(!comments){
+    const comments = await this.prismaService.comment.deleteMany({ where: { videoId: id } })
+    if (!comments) {
       return this.videoService.deleteVideo({ id })
     }
     return this.videoService.deleteVideo({ id });

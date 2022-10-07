@@ -229,7 +229,8 @@ export class VideoController {
     if (!video) {
       throw new NotFoundException('등록되지 않았거나 찾을 수 없는 영상입니다.')
     }
-    if (body.category !== ('HTML' || 'tailwindcss' || 'JavaScript' || 'Angular' || 'React')) {
+    const categories = ['HTML' , 'tailwindcss' , 'JavaScript' , 'Angular' , 'React'];
+    if (!categories.includes(body.category)) {
       throw new BadRequestException('올바른 카테고리가 아닙니다. 정해진 카테고리에서 선택해 주시길 바랍니다.')
     }
     return this.videoService.updateVideo({

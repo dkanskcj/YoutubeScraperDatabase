@@ -24,7 +24,7 @@ export class VideoController {
   @Get('all')
   @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.' })
   async allVideos() {
-    let test = {
+    let videos = {
       angular: [],
       tailwindcss: [],
       javascript: [],
@@ -64,7 +64,7 @@ export class VideoController {
     });
 
 
-    test = {
+    videos = {
       angular: [...plainToInstance(VideoDTO, Angulars)],
       tailwindcss: [...plainToInstance(VideoDTO, tailwinds)],
       javascript: [...plainToInstance(VideoDTO, JavaScripts)],
@@ -76,7 +76,7 @@ export class VideoController {
     //   throw new NotFoundException('해당 카테고리의 동영상이 존재하지 않습니다.')
     // }
 
-    return test;
+    return videos;
   }
 
   @Get('')
@@ -125,22 +125,26 @@ export class VideoController {
       throw new NotFoundException('해당 카테고리의 동영상이 존재하지 않습니다.')
     }
     for (let video of videos) {
-      if (video.url.indexOf("https://www.youtube.com") === 0) {
+      if(video.url.indexOf("https://www.youtube.com/watch?v=") === 0){
+        video.url = video.url.substring(32);
+        video.url = youtube.concat('/' + video.url);
+      }
+      else if (video.url.indexOf("https://www.youtube.com") === 0) {
         video.url = video.url.substring(23);
         video.url = youtube.concat(video.url);
       }
-      if (video.url.indexOf("http://www.youtube.com") === 0) {
+      else if (video.url.indexOf("http://www.youtube.com") === 0) {
         video.url = video.url.substring(22);
         video.url = youtube.concat(video.url);
       }
-      if (video.url.indexOf("https://youtu.be") === 0) {
+      else if (video.url.indexOf("https://youtu.be") === 0) {
         video.url = video.url.substring(16);
         video.url = youtube.concat(video.url);
       }
     }
     return videos;
   }
-
+  // https://www.youtube.com/watch?v=oC8evW7o-Mc
 
   @Get('thumbNailImg')
   @ApiOperation({ summary: '유튜브 영상의 썸네일을 가져옵니다.', description: '유튜브 영상의 고유 ID값만 따로 추출해서 썸네일 데이터를 만들 수 있게 만들어줍니다.' })
@@ -160,6 +164,10 @@ export class VideoController {
       throw new NotFoundException('동영상이 존재하지 않습니다.')
     }
     for (let video of videos) {
+      if(video.url.indexOf("https://www.youtube.com/watch?v=") === 0){
+        video.url = video.url.substring(32);
+        video.url = thumbNail.concat(video.url + defaultImg);
+      }
       if (video.url.indexOf("https://www.youtube.com") === 0) {
         video.url = video.url.substring(24);
         video.url = thumbNail.concat(video.url + defaultImg);

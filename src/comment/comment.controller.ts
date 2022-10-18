@@ -91,6 +91,9 @@ export class CommentController {
         password: false,
         createdAt: true,
         content: true
+      },
+      orderBy: {
+        id: 'desc'
       }
     })
     if (!comments) {

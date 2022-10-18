@@ -10,14 +10,14 @@ async function bootstrap() {
   await prismaService.enableShutdownHooks(app);
 
 
-  // const config = new DocumentBuilder()
-  //   .setTitle('Cats example')
-  //   .setDescription('The cats API description')
-  //   .setVersion('1.0')
-  //   .addTag('테이블 목록')
-  //   .build();
-  // const document = SwaggerModule.createDocument(app, config);
-  // SwaggerModule.setup('document', app, document);
+  const config = new DocumentBuilder()
+    .setTitle('Cats example')
+    .setDescription('The cats API description')
+    .setVersion('1.0')
+    .addTag('테이블 목록')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('document', app, document);
 
   // 포트번호
   await app.listen(process.env.PORT || 80);

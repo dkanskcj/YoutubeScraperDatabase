@@ -4,7 +4,9 @@ import { Comment } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CommentService } from './comment.service';
+import { CommentDTO } from './dtos/comment.dto';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
+import { CreateBodyCommentDTO } from './dtos/createBody-comment.dto';
 import { deleteCommentDTO } from './dtos/delete-comment.dto';
 import { GetCommentDTO } from './dtos/get-comment.dto';
 import { GetCommentsDTO } from './dtos/get-comments.dto';
@@ -23,12 +25,15 @@ export class CommentController {
   @Get('')
   @ApiOperation({ summary: '댓글 전체 조회', description: '댓글을 전체 조회합니다.' })
   async getCommet(): Promise<GetCommentsDTO[]> {
+    const user = await this.prismaService.user.findMany({});
+    console.log(user)
     const comments = await this.prismaService.comment.findMany({
       select: {
+        id: true,
         videoId: true,
-        name: true,
+        // name: true,
         content: true,
-        password: false,
+        // password: false,
         createdAt: true
       }
     })
@@ -48,14 +53,13 @@ export class CommentController {
     const comment = await this.prismaService.comment.findUnique({ where: { id } })
     const comments = await this.prismaService.comment.findMany({
       where: {
-        id
+        userId: id
       },
       select: {
+        userId: true,
         id: true,
-        name: true,
         content: true,
         createdAt: true,
-        password: false
       }
     })
     if (!comment) {
@@ -72,34 +76,39 @@ export class CommentController {
   @ApiOperation({ summary: '특정 video id의 전체 댓글을 조회합니다.', description: '특정 video의 id를 선택하면 해당 id에 있는 댓글들을 조회합니다.' })
   async getCommentsBySearchWithVideo(
     @Param('videoId', new ParseIntPipe()) id: number
-  ): Promise<GetCommentsDTO[]> {
+  ): Promise<CommentDTO[]> {
     const video = await this.prismaService.video.findUnique({ where: { id } });
     if (!video) {
       throw new NotFoundException('Video ID를 찾을 수 없습니다.')
     }
-    const comment = await this.prismaService.comment.findFirst({ where: { videoId: id } })
-    if (!comment) {
-      throw new BadRequestException(comment, 'test')
-    }
+   
     const comments = await this.prismaService.comment.findMany({
       where: {
-        videoId: id
+        video: {
+          id: video.id
+        },
       },
       select: {
         id: true,
-        name: true,
-        password: false,
+        content: true,
         createdAt: true,
-        content: true
-      },
-      orderBy: {
-        id: 'desc'
+        user: {
+          select: {
+            name: true,
+          }
+        }
       }
-    })
-    if (!comments) {
-      throw new BadRequestException(comments)
-    }
-    return comments
+    });
+    // const users = await this.prismaService.user.findMany({});
+    // // console.log(users)
+    // // for(let user of users){
+    // //   user.
+    // // }
+    // plainToInstance(GetCommentsDTO, comments)
+    // // for(let user of users){
+    // //   comments.map(x => x.userId = user.id);
+    // // }
+    return plainToInstance(CommentDTO,comments);
   }
 
 
@@ -108,8 +117,8 @@ export class CommentController {
   @ApiOperation({ summary: '해당 영상에 댓글을 생성합니다.', description: '아이디와 댓글을 검증하여 맞으면 해당 영상에 댓글을 생성합니다.' })
   async createComment(
     @Param('videoId', new ParseIntPipe()) videoId: number,
-    @Body() body: CreateCommentDTO
-  ): Promise<GetCommentDTO> {
+    @Body() body: CreateBodyCommentDTO
+  ): Promise<CreateCommentDTO> {
     const video = await this.prismaService.video.findUnique({ where: { id: videoId } });
     if (!video) {
       throw new NotFoundException('동영상을 찾을 수 없습니다.')
@@ -118,22 +127,31 @@ export class CommentController {
     if (!body.name) {
       throw new BadRequestException('아이디를 입력해 주시기 바랍니다.')
     }
-    const comment = await this.prismaService.comment.findFirst({
+    const user = await this.prismaService.user.findFirst({
       where: {
-        videoId: videoId,
-        name: body.name,
-        password: body.password
+        name: body.name
       }
     })
-    if (!comment) {
-      const create =  await this.commentService.createComment(body, videoId);
-      return plainToInstance(GetCommentDTO, create)
+    if(!user){
+      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
     }
-    if (body.name === comment.name && videoId === comment.videoId) {
-      throw new BadRequestException('중복된 아이디가 있습니다. 다른 아이디를 입력해 주시기 바랍니다.')
+    if(body.name !== user.name || body.password !== user.password){
+      throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
     }
-    const create = this.commentService.createComment(body, videoId);
-    return plainToInstance(GetCommentDTO, create);
+    // const comment = await this.prismaService.comment.findFirst({
+    //   where: {
+    //     videoId: videoId,
+    //   }
+    // })
+    // if (!comment) {
+    //   const create =  await this.commentService.createComment(body, videoId);
+    //   return plainToInstance(GetCommentDTO, create)
+    // }
+    // if (body.name === comment.name && videoId === comment.videoId) {
+    //   throw new BadRequestException('중복된 아이디가 있습니다. 다른 아이디를 입력해 주시기 바랍니다.')
+    // }d
+    const create = plainToInstance(CreateCommentDTO, body);
+    return this.commentService.createComment(create, videoId);
   }
 
   @Patch(':id')
@@ -149,9 +167,9 @@ export class CommentController {
       throw new NotFoundException('사용자를 찾을 수 없습니다.')
     }
     // 비밀번호 검증
-    if (body.password !== comment.password) {
-      throw new BadRequestException('비밀번호가 일치하지 않습니다.')
-    }
+    // if (body.password !== comment.password) {
+    //   throw new BadRequestException('비밀번호가 일치하지 않습니다.')
+    // }
     const update = await this.commentService.updateComment({
       where: { id },
       data: {
@@ -165,17 +183,17 @@ export class CommentController {
   @ApiOperation({ summary: '특정 id의 댓글을 삭제합니다.', description: '비밀번호를 비교하여 비밀번호가 일치한다면 해당 댓글을 삭제합니다.' })
   async deleteComment(
     @Param('id', new ParseIntPipe()) id: number,
-    @Body() body: deleteCommentDTO
-  ): Promise<deleteCommentDTO> {
+    // @Body() body: deleteCommentDTO
+  ): Promise<Comment> {
     const comment = await this.prismaService.comment.findUnique({ where: { id } });
     // const user = await this.prismaService.user.findUnique({ where: { id } });
     if (!comment) {
       throw new NotFoundException('댓글을 찾을 수 없습니다.')
     }
-    console.log(body)
-    if (body.password !== comment.password || body.name !== comment.name) {
-      throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
-    }
+    // console.log(body)
+    // if (body.password !== comment.password || body.name !== comment.name) {
+    //   throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
+    // }
     return this.commentService.deleteComment({
       id
     });

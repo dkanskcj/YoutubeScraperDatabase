@@ -22,7 +22,7 @@ export class VideoController {
 
 
   @Get('all')
-  @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.' })
+  @ApiOperation({ summary: '동영상 전체 조회', description: '전체 동영상을 조회합니다.(카테고리 별로 5개씩' })
   async allVideos() {
     let videos = {
       angular: [],

@@ -11,19 +11,19 @@ datasource db {
 }
 
 
-// model User {
-//   id Int @id @default(autoincrement())
-//   name String
-//   password String
-//   // 비밀번호 찾기 힌트 주제
-//   passwordHintTitle String
-//   // 비밀번호 찾기 답변
-//   passwordHintAnswer String
-//   comments Comment[]
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @default(now()) @updatedAt
-//   deletedAt DateTime?
-// }
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  password String
+  // 비밀번호 찾기 힌트 주제
+  passwordHintTitle String
+  // 비밀번호 찾기 답변
+  passwordHintAnswer String
+  comments Comment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
+}
 
 // 동영상
 model Video {
@@ -44,27 +44,27 @@ model Video {
   deletedAt DateTime?
 }
 
-// model Comment {
-//   id Int @id @default(autoincrement())
-//   // 댓글
-//   content String
-//   video Video @relation(fields: [videoId], references: [id])
-//   videoId Int
-//   user User @relation(fields: [userId], references: [id])
-//   userId Int
-//   createdAt DateTime @default(now())
-//   updatedAT DateTime @default(now()) @updatedAt
-//   deletedAt DateTime?
-// }
-
 model Comment {
   id Int @id @default(autoincrement())
-  name String
-  password String
+  // 댓글
   content String
   video Video @relation(fields: [videoId], references: [id])
   videoId Int
+  user User @relation(fields: [userId], references: [id])
+  userId Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAT DateTime @default(now()) @updatedAt
   deletedAt DateTime?
 }
+
+// model Comment {
+//   id Int @id @default(autoincrement())
+//   name String
+//   password String
+//   content String
+//   video Video @relation(fields: [videoId], references: [id])
+//   videoId Int
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now()) @updatedAt
+//   deletedAt DateTime?
+// }

@@ -3,12 +3,14 @@ import { Exclude, Expose } from 'class-transformer'
 @Exclude()
 export class GetCommentDTO{
     
+    // @Expose()
+    // name: string;
     @Expose()
-    name: string;
-    
-    @Expose()
-    createdAt: Date;
+    userId: number;
     
     @Expose()
     content: string;
+    
+    @Expose()
+    createdAt: Date;
 }

@@ -54,6 +54,13 @@ export class UserController {
         passwordHintAnswer: true
       }
     })
+    // const createSalt = () =>
+    // new Promise((resolve, reject) => {
+    //     crypto.randomBytes(64, (err, buf) => {
+    //         if (err) reject(err);
+    //         resolve(buf.toString('base64'));
+    //     });
+    // });
     if (!user) {
       throw new NotFoundException('유저 정보를 찾을 수 없습니다.')
     }
@@ -72,7 +79,7 @@ export class UserController {
     return plainToInstance(LoginUserDTO, user);
   }
 
-  @Post(':id')
+  @Post('')
   @ApiOperation({ summary: '유저를 생성합니다.', description: '중복되지 않은 유저 아이디와 비밀번호를 입력하고 비밀번호 질의응답도 생성하여 유저를 생성합니다.' })
   async createUser(
     @Body() body: CreateUserDTO
@@ -86,6 +93,9 @@ export class UserController {
       for (let user of users) {
         if (user.name === body.name) {
           throw new BadRequestException('아이디가 중복됩니다. 다른 아이디를 생성해 주시기 바랍니다.')
+        }
+        else if(user.name === body.name && user.password !== body.password){
+          throw new BadRequestException('아이디 또는 비밀번호가 올바르지 않습니다.')
         }
       }
     }

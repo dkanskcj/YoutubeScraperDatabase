@@ -151,7 +151,7 @@ export class CommentController {
     //   throw new BadRequestException('중복된 아이디가 있습니다. 다른 아이디를 입력해 주시기 바랍니다.')
     // }d
     const create = plainToInstance(CreateCommentDTO, body);
-    return this.commentService.createComment(create, videoId);
+    return this.commentService.createComment(create, videoId, user.id);
   }
 
   @Patch(':id')

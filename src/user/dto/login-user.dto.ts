@@ -7,4 +7,8 @@ export class LoginUserDTO {
     @ApiProperty({example: '아이디'})
     @Expose()
     name: string;
+
+    @ApiProperty({example: '비밀번호'})
+    @Expose()
+    password: string;
 }

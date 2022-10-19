@@ -36,8 +36,10 @@ export class UserService {
             data : {
                 name: body.name,
                 password: body.password,
-                passwordHintTitle: body.passwordHintTitle,
-                passwordHintAnswer: body.passwordHintAnswer
+                passwordHintAnswer: '',
+                passwordHintTitle: ''
+                // passwordHintTitle: body?.passwordHintTitle,
+                // passwordHintAnswer: body?.passwordHintAnswer
             }
         })
     }

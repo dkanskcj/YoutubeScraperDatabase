@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Comment, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
+import { CreateBodyCommentDTO } from './dtos/createBody-comment.dto';
 import { GetCommentsDTO } from './dtos/get-comments.dto';
 
 @Injectable()
@@ -34,14 +35,17 @@ export class CommentService {
         });
     }
 
-    async createComment(body: CreateCommentDTO, videoId: number): Promise<Comment> {
+    async createComment(body: CreateCommentDTO, videoId: number, userId: number): Promise<Comment> {
         return this.prisma.comment.create({
             data: {
                 user: {
-                    connect:{ id: userId }
+                    connect: { id: userId }
                 },
-                name: body.name,
-                password: body.password,
+                // user: {
+                //     connect:{ id: userId }
+                // },
+                // name: body.name,
+                // password: body.password,
                 content: body.content,
                 video: {
                     connect: { id: videoId }

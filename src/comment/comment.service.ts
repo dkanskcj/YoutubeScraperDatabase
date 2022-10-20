@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Comment, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
+import { CreateBodyCommentDTO } from './dtos/createBody-comment.dto';
+import { GetCommentsDTO } from './dtos/get-comments.dto';
 
 @Injectable()
 export class CommentService {
@@ -19,23 +21,13 @@ export class CommentService {
         });
     }
 
-    // async findCommentswithVideoId(
-    //     skip?: number;
-    //     take:
-    // ): Promise<Comment[]> {
-    //     const{ skip, take, cursor, where, orderBy } = params;
-    //     return await this.prisma.comment.findMany({
-    //        skip, take, cursor, where, orderBy
-    //     });
-    // }
-
     async findComments(params: {
         skip?: number;
         take?: number;
         cursor?: Prisma.CommentWhereUniqueInput;
         where?: Prisma.CommentWhereInput;
         orderBy?: Prisma.CommentOrderByWithRelationInput
-    }): Promise<Comment[]>{
+    }): Promise<Comment[]> {
         const { skip, take, cursor, where, orderBy } = params;
 
         return await this.prisma.comment.findMany({
@@ -43,31 +35,37 @@ export class CommentService {
         });
     }
 
-    async createComment(body: CreateCommentDTO, videoId: number, userId: number): Promise<Comment>{
+    async createComment(body: CreateCommentDTO, videoId: number, userId: number): Promise<Comment> {
         return this.prisma.comment.create({
-            data :{
+            data: {
                 user: {
-                    connect:{ id : userId }
+                    connect: { id: userId }
                 },
+                // user: {
+                //     connect:{ id: userId }
+                // },
+                // name: body.name,
+                // password: body.password,
                 content: body.content,
                 video: {
-                    connect:{id: videoId}
+                    connect: { id: videoId }
                 }
-            }
+            },
         });
+        // return this.prisma.comment.create();
     }
 
     async updateComment(params: {
         where: Prisma.CommentWhereUniqueInput;
         data: Prisma.CommentUpdateInput
-    }): Promise<Comment>{
+    }): Promise<Comment> {
         const { where, data } = params;
         return await this.prisma.comment.update({
             where, data
         });
     }
 
-    async deleteComment(where: Prisma.CommentWhereUniqueInput): Promise<Comment>{
+    async deleteComment(where: Prisma.CommentWhereUniqueInput): Promise<Comment> {
         return await this.prisma.comment.delete({
             where
         });

@@ -17,6 +17,10 @@ export class VideoService {
             where: VideoWhereUniqueInput
         })
     }
+    
+    async totalVideo(){
+        return await this.prisma.video.count();
+    }
 
     async findVideos(params: {
         skip?: number;

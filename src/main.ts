@@ -20,6 +20,6 @@ async function bootstrap() {
   SwaggerModule.setup('document', app, document);
 
   // 포트번호
-  await app.listen(80);
+  await app.listen(process.env.PORT || 80);
 }
 bootstrap();

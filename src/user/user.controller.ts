@@ -54,33 +54,16 @@ export class UserController {
         passwordHintAnswer: true
       }
     })
-
-    // const createSalt = () =>
-    // new Promise((resolve, reject) => {
-    //     crypto.randomBytes(64, (err, buf) => {
-    //         if (err) reject(err);
-    //         resolve(buf.toString('base64'));
-    //     });
-    // });
     if (!user) {
       throw new NotFoundException('유저 정보를 찾을 수 없습니다.')
     }
     if(user.name !== body.name || user.password !== body.password){
-      // throw new BadRequestException(plainToInstance(LoginUserDTO, user))
       throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
     }
-    // const currentName = await this.prismaService.user.findFirst({
-    //   where: {
-    //     name: user.name
-    //   },
-    //   select: { 
-    //     name: true
-    //   }
-    // })
     else{
       const hashPassword = await this.cryptoService.Encryption(user.name ,user.password);
       const check = await this.cryptoService.checkPassword(user.password, hashPassword.password)
-      if(check){
+      if(check === true){
         return plainToInstance(LoginUserDTO, hashPassword)
       }
     }

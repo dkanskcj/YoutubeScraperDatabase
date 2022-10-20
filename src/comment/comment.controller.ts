@@ -100,15 +100,6 @@ export class CommentController {
         }
       }
     });
-    // const users = await this.prismaService.user.findMany({});
-    // // console.log(users)
-    // // for(let user of users){
-    // //   user.
-    // // }
-    // plainToInstance(GetCommentsDTO, comments)
-    // // for(let user of users){
-    // //   comments.map(x => x.userId = user.id);
-    // // }
     return plainToInstance(CommentDTO, comments);
   }
 
@@ -142,22 +133,10 @@ export class CommentController {
         const create = plainToInstance(CreateCommentDTO, body);
         return this.commentService.createComment(create, videoId, user.id)
       }
-      else{
+      else {
         throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
       }
     }
-    // const comment = await this.prismaService.comment.findFirst({
-    //   where: {
-    //     videoId: videoId,
-    //   }
-    // })
-    // if (!comment) {
-    //   const create =  await this.commentService.createComment(body, videoId);
-    //   return plainToInstance(GetCommentDTO, create)
-    // }
-    // if (body.name === comment.name && videoId === comment.videoId) {
-    //   throw new BadRequestException('중복된 아이디가 있습니다. 다른 아이디를 입력해 주시기 바랍니다.')
-    // }d
     const create = plainToInstance(CreateCommentDTO, body);
     return this.commentService.createComment(create, videoId, user.id);
   }
@@ -172,38 +151,88 @@ export class CommentController {
     const comment = await this.prismaService.comment.findUnique({ where: { id } });
 
     if (!comment) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.')
+      throw new NotFoundException(comment)
+      // throw new NotFoundException('사용자를 찾을 수 없습니다.')
     }
-    // 비밀번호 검증
-    // if (body.password !== comment.password) {
-    //   throw new BadRequestException('비밀번호가 일치하지 않습니다.')
-    // }
-    const update = await this.commentService.updateComment({
-      where: { id },
-      data: {
-        content: body.content
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        name: body.name
       }
     })
-    return plainToInstance(GetCommentDTO, update);
+    if (user) {
+      const hashPassword = await this.cryptoService.Encryption(user.name, user.password);
+      const check = await this.cryptoService.checkPassword(user.password, hashPassword.password)
+      if (check === true) {
+        const update = await this.commentService.updateComment({
+          where: { id },
+          data: {
+            content: body.content
+          }
+        })
+        return plainToInstance(GetCommentDTO, update);
+      }
+      else {
+        if (user.name !== body.name || user.password !== body.password) {
+          throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
+        }
+        else {
+          const update = await this.commentService.updateComment({
+            where: { id },
+            data: {
+              content: body.content
+            }
+          })
+          return plainToInstance(GetCommentDTO, update);
+        }
+      }
+    }
+    return;
   }
 
   @Patch(':id/delete')
   @ApiOperation({ summary: '특정 id의 댓글을 삭제합니다.', description: '비밀번호를 비교하여 비밀번호가 일치한다면 해당 댓글을 삭제합니다.' })
   async deleteComment(
     @Param('id', new ParseIntPipe()) id: number,
-    // @Body() body: deleteCommentDTO
+    @Body() body: deleteCommentDTO
   ): Promise<Comment> {
     const comment = await this.prismaService.comment.findUnique({ where: { id } });
-    // const user = await this.prismaService.user.findUnique({ where: { id } });
     if (!comment) {
       throw new NotFoundException('댓글을 찾을 수 없습니다.')
     }
-    // console.log(body)
-    // if (body.password !== comment.password || body.name !== comment.name) {
-    //   throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
-    // }
-    return this.commentService.deleteComment({
-      id
-    });
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        name: body.name
+      }
+    })
+    const check = await this.cryptoService.checkPassword(user.password, body.password)
+    if (!user) {
+      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.')
+    }
+    else if (user.password !== body.password) {
+      if (check === true) {
+        return this.commentService.deleteComment({ id })
+      }
+      throw new BadRequestException('비밀번호가 일치하지 않습니다.')
+    }
+    const checkComment = await this.prismaService.comment.findFirst({
+      where: {
+        userId: user.id,
+        content: comment.content
+      }
+    })
+    if (!checkComment) {
+      throw new NotFoundException('해당 유저의 해당 댓글을 찾을 수 없습니다.')
+    }
+    if (check === true) {
+      return this.commentService.deleteComment({ id })
+    }
+    else {
+      if (user.name !== body.name || user.password !== body.password) {
+        throw new BadRequestException('비밀번호가 일치하지 않습니다.')
+      }
+      else {
+        return this.commentService.deleteComment({ id })
+      }
+    }
   }
 }

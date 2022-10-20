@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, 
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Comment } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
+import { CryptoSerivce } from 'src/crypto/crypto.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CommentService } from './comment.service';
 import { CommentDTO } from './dtos/comment.dto';
@@ -17,8 +18,8 @@ import { UpdateCommentDTO } from './dtos/update-comment.dto';
 export class CommentController {
   constructor(
     private readonly commentService: CommentService,
-    private prismaService: PrismaService
-
+    private prismaService: PrismaService,
+    private cryptoService: CryptoSerivce
   ) { }
 
 
@@ -81,7 +82,7 @@ export class CommentController {
     if (!video) {
       throw new NotFoundException('Video ID를 찾을 수 없습니다.')
     }
-   
+
     const comments = await this.prismaService.comment.findMany({
       where: {
         video: {
@@ -108,7 +109,7 @@ export class CommentController {
     // // for(let user of users){
     // //   comments.map(x => x.userId = user.id);
     // // }
-    return plainToInstance(CommentDTO,comments);
+    return plainToInstance(CommentDTO, comments);
   }
 
 
@@ -132,11 +133,18 @@ export class CommentController {
         name: body.name
       }
     })
-    if(!user){
+    if (!user) {
       throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
     }
-    if(body.name !== user.name || body.password !== user.password){
-      throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
+    if (body.name !== user.name || body.password !== user.password) {
+      const check = await this.cryptoService.checkPassword(user.password, body.password)
+      if (check) {
+        const create = plainToInstance(CreateCommentDTO, body);
+        return this.commentService.createComment(create, videoId, user.id)
+      }
+      else{
+        throw new BadRequestException('아이디 또는 비밀번호가 일치하지 않습니다.')
+      }
     }
     // const comment = await this.prismaService.comment.findFirst({
     //   where: {

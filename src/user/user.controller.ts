@@ -2,8 +2,7 @@ import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, 
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
-import { off } from 'process';
-import { GetCommentsDTO } from 'src/comment/dtos/get-comments.dto';
+import { CryptoSerivce } from 'src/crypto/crypto.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { DeleteUserDTO } from './dto/delete-user.dto';
@@ -18,7 +17,8 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private prismaService: PrismaService
+    private prismaService: PrismaService,
+    private cryptoService: CryptoSerivce
   ) { }
 
   @Get('')
@@ -54,6 +54,7 @@ export class UserController {
         passwordHintAnswer: true
       }
     })
+
     // const createSalt = () =>
     // new Promise((resolve, reject) => {
     //     crypto.randomBytes(64, (err, buf) => {
@@ -76,7 +77,14 @@ export class UserController {
     //     name: true
     //   }
     // })
-    return plainToInstance(LoginUserDTO, user);
+    else{
+      const hashPassword = await this.cryptoService.Encryption(user.name ,user.password);
+      const check = await this.cryptoService.checkPassword(user.password, hashPassword.password)
+      if(check){
+        return plainToInstance(LoginUserDTO, hashPassword)
+      }
+    }
+    return ;
   }
 
   @Post('')

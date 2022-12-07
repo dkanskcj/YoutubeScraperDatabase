@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 
-export class UpdateCommentDTO {
+export class CreateBodyCommentDTO {
 
     @IsNotEmpty({message: '이름을 입력해 주세요.'})
     @ApiProperty({example: 'dkanskcj'})
@@ -11,10 +11,7 @@ export class UpdateCommentDTO {
     @ApiProperty({example: '1234'})
     password: string;
 
-
-    // ?
-    @IsOptional()
-    // @IsNotEmpty({message: '내용을 입력해 주세요.'})
-    @ApiProperty({example: '서에번쩍!'})
-    content?: string;
+    @IsNotEmpty({message: '내용을 입력해 주세요.'})
+    @ApiProperty({example: '댓글을 생성하였다!'})
+    content: string;
 }

@@ -12,11 +12,11 @@ export class CreateUserDTO {
     password: string;
 
 
-    @IsNotEmpty({ message: '비밀번호 찾는 힌트의 질문을 등록해주세요.'})
-    @ApiProperty({ example: '좋아하는 색깔은?'})
-    passwordHintTitle: string;
+    // @IsNotEmpty({ message: '비밀번호 찾는 힌트의 질문을 등록해주세요.'})
+    // @ApiProperty({ example: '좋아하는 색깔은?'})
+    // passwordHintTitle?: string;
 
-    @IsNotEmpty({ message: '비밀번호 찾는 힌트의 답변을 등록해주세요.'})
-    @ApiProperty({ example: '파란색'})
-    passwordHintAnswer: string;
+    // // @IsNotEmpty({ message: '비밀번호 찾는 힌트의 답변을 등록해주세요.'})
+    // @ApiProperty({ example: '파란색'})
+    // passwordHintAnswer?: string;
 }
